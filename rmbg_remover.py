@@ -100,8 +100,19 @@ class RMBGRemover:
         # Run inference
         with torch.no_grad():
             output = self.model(input_tensor)
+
+            # Handle different output formats
+            if isinstance(output, (list, tuple)):
+                # If output is a list/tuple, take the first element
+                output = output[0]
+
             # Apply sigmoid to get probabilities
-            mask = torch.sigmoid(output[0, 0]).cpu().numpy()
+            if len(output.shape) == 4:
+                # Shape: [batch, channels, height, width]
+                mask = torch.sigmoid(output[0, 0]).cpu().numpy()
+            else:
+                # Squeeze extra dimensions if needed
+                mask = torch.sigmoid(output.squeeze()).cpu().numpy()
 
         # Resize mask back to original size
         mask_pil = Image.fromarray((mask * 255).astype(np.uint8))
