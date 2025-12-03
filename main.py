@@ -6,6 +6,13 @@ import sys
 from pathlib import Path
 from image_processor import ImageProcessor
 
+# Load environment variables from .env file
+try:
+    from dotenv import load_dotenv
+    load_dotenv()  # Load .env file if it exists
+except ImportError:
+    pass  # python-dotenv not installed, use system env vars only
+
 
 def main():
     parser = argparse.ArgumentParser(
