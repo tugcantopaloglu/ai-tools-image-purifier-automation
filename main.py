@@ -16,17 +16,20 @@ Examples:
   # Remove watermarks from all images in a directory
   python main.py input_folder -w
 
-  # Remove watermarks and white background
+  # Remove watermarks and white background (color-based, fast)
   python main.py input_folder -w -b white
+
+  # Remove background using AI (rembg - free, slower, good quality)
+  python main.py input_folder -b white --use-ai
+
+  # Remove background using RMBG-2.0 (state-of-the-art, best quality)
+  python main.py input_folder -b white --use-ai --ai-model rmbg
 
   # Remove watermarks with aggressive mode (crops bottom)
   python main.py input_folder -w --aggressive
 
   # Process single image
   python main.py image.png -w -o output.png
-
-  # Remove green screen background only
-  python main.py input_folder -b green
 
   # Auto-detect and remove background
   python main.py input_folder -b auto
@@ -70,6 +73,19 @@ Examples:
         help="Process subdirectories recursively"
     )
 
+    parser.add_argument(
+        "--use-ai",
+        action="store_true",
+        help="Use AI-based background removal instead of color-based"
+    )
+
+    parser.add_argument(
+        "--ai-model",
+        choices=["rembg", "rmbg"],
+        default="rembg",
+        help="AI model to use: rembg (default, U2-Net) or rmbg (BRIA RMBG-2.0, state-of-the-art)"
+    )
+
     args = parser.parse_args()
 
     # Validate input
@@ -106,6 +122,11 @@ Examples:
     print(f"Input: {input_path}")
     print(f"Remove watermarks: {args.watermark}")
     print(f"Remove background: {args.background or 'No'}")
+    if args.use_ai and args.background:
+        model_name = "BRIA RMBG-2.0" if args.ai_model == "rmbg" else "rembg (U2-Net)"
+        print(f"Background method: AI-based ({model_name})")
+    elif args.background:
+        print("Background method: Color-based")
     if args.aggressive:
         print("Mode: Aggressive (with bottom crop)")
     print("=" * 60)
@@ -131,13 +152,15 @@ Examples:
             remove_watermark=args.watermark,
             remove_background=bool(args.background),
             bg_color=bg_color,
-            aggressive=args.aggressive
+            aggressive=args.aggressive,
+            use_ai=args.use_ai,
+            ai_method=args.ai_model
         )
 
         if success:
-            print(f"\n✓ Successfully processed image")
+            print(f"\n[SUCCESS] Image processed successfully")
         else:
-            print(f"\n✗ Failed to process image")
+            print(f"\n[FAILED] Failed to process image")
             sys.exit(1)
 
     else:
@@ -151,7 +174,9 @@ Examples:
             remove_background=bool(args.background),
             bg_color=bg_color,
             aggressive=args.aggressive,
-            recursive=args.recursive
+            recursive=args.recursive,
+            use_ai=args.use_ai,
+            ai_method=args.ai_model
         )
 
         print("=" * 60)

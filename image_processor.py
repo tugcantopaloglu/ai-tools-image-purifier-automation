@@ -11,11 +11,13 @@ class ImageProcessor:
     """Main class for processing images with watermark and background removal."""
 
     def __init__(self):
+        """Initialize image processor."""
         self.watermark_remover = WatermarkRemover()
         self.background_remover = BackgroundRemover()
 
     def process_image(self, input_path, output_path, remove_watermark=True,
-                     remove_background=False, bg_color=None, aggressive=False):
+                     remove_background=False, bg_color=None, aggressive=False,
+                     use_ai=False, ai_method="rembg"):
         """Process a single image.
 
         Args:
@@ -25,6 +27,8 @@ class ImageProcessor:
             remove_background: Whether to remove background
             bg_color: Background color to remove (None for auto-detect)
             aggressive: Use aggressive watermark removal (crops bottom)
+            use_ai: Use AI-based background removal instead of color-based
+            ai_method: AI method to use - "rembg" or "rmbg" (BRIA RMBG-2.0)
 
         Returns:
             True if successful, False otherwise
@@ -46,13 +50,18 @@ class ImageProcessor:
 
             # Remove background
             if remove_background:
-                print(f"  - Removing background (color: {bg_color or 'auto-detect'})...")
-                image = self.background_remover.remove_color_background(image, color_name=bg_color)
-                image = self.background_remover.refine_edges(image)
+                if use_ai:
+                    method_name = "BRIA RMBG-2.0" if ai_method == "rmbg" else "rembg"
+                    print(f"  - Removing background (AI-based: {method_name})...")
+                    image = self.background_remover.remove_with_ai(image, method=ai_method)
+                else:
+                    print(f"  - Removing background (color: {bg_color or 'auto-detect'})...")
+                    image = self.background_remover.remove_color_background(image, color_name=bg_color)
+                    image = self.background_remover.refine_edges(image)
 
             # Save image
             cv2.imwrite(str(output_path), image)
-            print(f"  ✓ Saved to: {output_path}")
+            print(f"  [OK] Saved to: {output_path}")
 
             return True
 
@@ -62,7 +71,7 @@ class ImageProcessor:
 
     def process_directory(self, input_dir, output_dir=None, remove_watermark=True,
                          remove_background=False, bg_color=None, aggressive=False,
-                         recursive=False):
+                         recursive=False, use_ai=False, ai_method="rembg"):
         """Process all images in a directory.
 
         Args:
@@ -73,6 +82,8 @@ class ImageProcessor:
             bg_color: Background color to remove
             aggressive: Use aggressive watermark removal
             recursive: Process subdirectories recursively
+            use_ai: Use AI-based background removal
+            ai_method: AI method to use - "rembg" or "rmbg" (BRIA RMBG-2.0)
 
         Returns:
             Tuple of (successful_count, failed_count)
@@ -127,7 +138,9 @@ class ImageProcessor:
                 remove_watermark=remove_watermark,
                 remove_background=remove_background,
                 bg_color=bg_color,
-                aggressive=aggressive
+                aggressive=aggressive,
+                use_ai=use_ai,
+                ai_method=ai_method
             )
 
             if success:

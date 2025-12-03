@@ -104,17 +104,30 @@ class BackgroundRemover:
 
         return image_bgra
 
-    def remove_with_ai(self, image):
-        """Remove background using AI-based method (rembg library).
+    def remove_with_ai(self, image, method="rembg"):
+        """Remove background using AI-based method.
 
         This is more accurate but slower than color-based removal.
 
         Args:
             image: numpy array of the image (BGR format)
+            method: AI method to use - "rembg" or "rmbg" (BRIA RMBG-2.0)
 
         Returns:
             Image with transparent background (BGRA format)
         """
+        if method == "rmbg":
+            # Use BRIA RMBG-2.0 model
+            try:
+                from rmbg_remover import RMBGRemover
+                remover = RMBGRemover()
+                return remover.remove_background(image)
+            except ImportError as e:
+                print(f"Warning: RMBG-2.0 dependencies not installed: {e}")
+                print("Falling back to rembg...")
+                method = "rembg"
+
+        # Use rembg (default)
         try:
             from rembg import remove
             from PIL import Image as PILImage

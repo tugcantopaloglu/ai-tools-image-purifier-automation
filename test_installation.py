@@ -12,31 +12,31 @@ def test_imports():
     # Test OpenCV
     try:
         import cv2
-        print(f"✓ OpenCV version: {cv2.__version__}")
+        print(f"[OK] OpenCV version: {cv2.__version__}")
     except ImportError as e:
-        errors.append(f"✗ OpenCV (cv2) not found: {e}")
+        errors.append(f"[FAIL] OpenCV (cv2) not found: {e}")
 
     # Test NumPy
     try:
         import numpy as np
-        print(f"✓ NumPy version: {np.__version__}")
+        print(f"[OK] NumPy version: {np.__version__}")
     except ImportError as e:
-        errors.append(f"✗ NumPy not found: {e}")
+        errors.append(f"[FAIL] NumPy not found: {e}")
 
     # Test Pillow
     try:
         from PIL import Image
         import PIL
-        print(f"✓ Pillow version: {PIL.__version__}")
+        print(f"[OK] Pillow version: {PIL.__version__}")
     except ImportError as e:
-        errors.append(f"✗ Pillow not found: {e}")
+        errors.append(f"[FAIL] Pillow not found: {e}")
 
     # Test rembg (optional)
     try:
         import rembg
-        print(f"✓ rembg installed (optional)")
+        print(f"[OK] rembg installed (optional)")
     except ImportError:
-        print("⚠ rembg not installed (optional - for AI-based background removal)")
+        print("[WARN] rembg not installed (optional - for AI-based background removal)")
 
     return errors
 
@@ -48,27 +48,27 @@ def test_modules():
 
     try:
         from config import WATERMARK_CONFIGS
-        print("✓ config.py")
+        print("[OK] config.py")
     except Exception as e:
-        errors.append(f"✗ config.py: {e}")
+        errors.append(f"[FAIL] config.py: {e}")
 
     try:
         from watermark_remover import WatermarkRemover
-        print("✓ watermark_remover.py")
+        print("[OK] watermark_remover.py")
     except Exception as e:
-        errors.append(f"✗ watermark_remover.py: {e}")
+        errors.append(f"[FAIL] watermark_remover.py: {e}")
 
     try:
         from background_remover import BackgroundRemover
-        print("✓ background_remover.py")
+        print("[OK] background_remover.py")
     except Exception as e:
-        errors.append(f"✗ background_remover.py: {e}")
+        errors.append(f"[FAIL] background_remover.py: {e}")
 
     try:
         from image_processor import ImageProcessor
-        print("✓ image_processor.py")
+        print("[OK] image_processor.py")
     except Exception as e:
-        errors.append(f"✗ image_processor.py: {e}")
+        errors.append(f"[FAIL] image_processor.py: {e}")
 
     return errors
 
@@ -94,12 +94,12 @@ def main():
     all_errors = import_errors + module_errors
 
     if not all_errors:
-        print("✓ All tests passed! Installation successful.")
+        print("[SUCCESS] All tests passed! Installation successful.")
         print("\nYou can now use the tool:")
         print("  python main.py --help")
         return 0
     else:
-        print("✗ Some tests failed:\n")
+        print("[FAILED] Some tests failed:\n")
         for error in all_errors:
             print(f"  {error}")
         print("\nPlease install missing dependencies:")
