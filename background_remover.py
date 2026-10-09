@@ -29,20 +29,17 @@ class BackgroundRemover:
             image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
 
         # Determine target color
-        if custom_color:
-            target_color = np.array(custom_color, dtype=np.uint8)
+        if custom_color is not None:
+            target_color = np.array(custom_color, dtype=np.int16)[::-1]
         elif color_name and color_name.lower() in self.bg_colors:
-            target_color = np.array(self.bg_colors[color_name.lower()], dtype=np.uint8)
+            target_color = np.array(self.bg_colors[color_name.lower()], dtype=np.int16)[::-1]
         else:
             # Auto-detect dominant background color
-            target_color = self._detect_background_color(image)
-
-        # Convert BGR to RGB for consistency
-        target_color_bgr = target_color[::-1] if len(target_color) == 3 else target_color
+            target_color = self._detect_background_color(image).astype(np.int16)
 
         # Create mask for the background color
-        lower_bound = np.clip(target_color_bgr - self.tolerance, 0, 255)
-        upper_bound = np.clip(target_color_bgr + self.tolerance, 0, 255)
+        lower_bound = np.clip(target_color - self.tolerance, 0, 255).astype(np.uint8)
+        upper_bound = np.clip(target_color + self.tolerance, 0, 255).astype(np.uint8)
 
         mask = cv2.inRange(image, lower_bound, upper_bound)
 
