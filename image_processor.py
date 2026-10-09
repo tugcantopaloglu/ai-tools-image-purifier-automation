@@ -2,6 +2,7 @@
 
 import cv2
 import os
+import numpy as np
 from pathlib import Path
 from watermark_remover import WatermarkRemover
 from background_remover import BackgroundRemover
@@ -45,6 +46,12 @@ class ImageProcessor:
             image = cv2.imread(str(input_path), cv2.IMREAD_UNCHANGED)
             if image is None:
                 print(f"Error: Could not read image {input_path}")
+                return False
+
+            if image.dtype == np.uint16:
+                image = (image / 257).round().astype(np.uint8)
+            elif image.dtype != np.uint8:
+                print(f"Error: Unsupported image sample type {image.dtype}: {input_path}")
                 return False
 
             original_alpha = None
@@ -172,7 +179,7 @@ class ImageProcessor:
                 output_file = output_path / image_file.name
 
             # Change extension to PNG if removing background (for transparency)
-            if remove_background and output_file.suffix.lower() != '.png':
+            if remove_background:
                 output_file = output_file.with_suffix('.png')
 
             if output_counts[os.path.normcase(str(output_file))] > 1:

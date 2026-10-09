@@ -129,6 +129,49 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(actual[0, 0, 3], 0)
         self.assertEqual(actual[8, 8, 3], 255)
 
+    def test_uppercase_png_uses_same_case_sensitive_target(self):
+        input_dir = self.root / 'input'
+        self.image(input_dir / 'photo.PNG')
+        with patch('image_processor.os.path.normcase', side_effect=lambda value: value):
+            result = self.processor.process_directory(
+                input_dir, remove_watermark=False, remove_background=True, bg_color='white')
+        self.assertEqual(result, (1, 0))
+        output = input_dir / 'output' / 'photo.png'
+        self.assertTrue(output.exists())
+        actual = cv2.imread(str(output), cv2.IMREAD_UNCHANGED)
+        self.assertEqual(actual[0, 0, 3], 0)
+        self.assertEqual(actual[8, 8, 3], 255)
+
+    def test_sixteen_bit_watermark_input_is_normalized(self):
+        source = self.root / 'sixteen.png'
+        image = np.full((16, 16, 3), 65535, dtype=np.uint16)
+        self.assertTrue(cv2.imwrite(str(source), image))
+        original_bytes = source.read_bytes()
+        output = self.root / 'watermark.png'
+        self.assertTrue(self.processor.process_image(source, output, remove_watermark=True))
+        actual = cv2.imread(str(output), cv2.IMREAD_UNCHANGED)
+        self.assertEqual(actual.dtype, np.uint8)
+        np.testing.assert_array_equal(actual, np.full((16, 16, 3), 255, dtype=np.uint8))
+        self.assertEqual(source.read_bytes(), original_bytes)
+
+    def test_sixteen_bit_background_and_alpha_are_scaled_consistently(self):
+        source = self.root / 'sixteen-alpha.png'
+        image = np.full((16, 16, 4), 65535, dtype=np.uint16)
+        image[4:12, 4:12, :3] = (40 * 257, 80 * 257, 200 * 257)
+        image[0:2, :, 3] = 0
+        image[6:10, 6:10, 3] = 70 * 257
+        self.assertTrue(cv2.imwrite(str(source), image))
+        original_bytes = source.read_bytes()
+        output = self.root / 'background.png'
+        self.assertTrue(self.processor.process_image(
+            source, output, remove_watermark=True, remove_background=True, bg_color='white'))
+        actual = cv2.imread(str(output), cv2.IMREAD_UNCHANGED)
+        self.assertEqual(actual.dtype, np.uint8)
+        self.assertEqual(actual[0, 0, 3], 0)
+        self.assertEqual(actual[4, 8, 3], 255)
+        self.assertEqual(actual[8, 8, 3], 70)
+        self.assertEqual(source.read_bytes(), original_bytes)
+
 
 if __name__ == '__main__':
     with contextlib.redirect_stdout(io.StringIO()):

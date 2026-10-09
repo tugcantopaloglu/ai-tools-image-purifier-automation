@@ -76,6 +76,7 @@ The installation check verifies imports. Regression tests use small generated im
 - Aggressive mode intentionally crops image content.
 - Color matching can remove foreground pixels similar to the selected background.
 - Alpha edge refinement can affect small details. Existing source alpha is retained when saving to a format that supports it.
+- Processing uses 8-bit samples. Decoded 16-bit color and alpha channels are scaled to 8-bit; other sample depths are rejected. Source files retain their original depth.
 - AI output quality, GPU execution and provider/model compatibility need separate testing.
 
 ## Project files
